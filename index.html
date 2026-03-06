@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoboNation</title>
+<style>
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana; margin:0; padding:0; background:#e0f2f7; color:black; }
+header { background:#005f99; color:white; padding:15px; text-align:center; font-size:24px; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.2);}
+nav button, .welcome button { margin:5px; padding:10px 16px; font-size:16px; cursor:pointer; border:none; border-radius:8px; background:#0099ff; color:white; transition:0.2s; }
+nav button:hover, .welcome button:hover { background:#0077cc; }
+main { padding:20px; min-height:400px; }
+.card { border-radius:8px; background:white; padding:15px; margin:10px 0; box-shadow:0 2px 5px rgba(0,0,0,0.1); cursor:pointer; color:black; }
+.slide { border:2px solid #0099ff; border-radius:8px; background:white; padding:15px; margin-top:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); color:black;}
+.slide-nav { margin-top:10px; }
+.slide-nav button { margin:3px; padding:6px 12px; }
+.welcome { text-align:center; margin-top:50px; color:black; }
+.welcome h2 { font-size:32px; color:#005f99; margin-bottom:20px; }
+input, textarea { padding:8px; margin-right:5px; border-radius:6px; border:1px solid #ccc; font-size:14px; }
+img.cad { width:300px; height:auto; border:1px solid #0099ff; border-radius:6px; margin-top:10px; }
+ul { padding-left:20px; }
+</style>
+</head>
+<body>
+
+<main id="content">
+  <div class="welcome">
+    <h2>Welcome to RoboNation!</h2>
+    <p>Create an account or login to get started:</p>
+    <input type="text" id="username" placeholder="Enter username">
+    <button id="createBtn">Create Account</button>
+    <button id="loginBtn">Login</button>
+    <p id="welcomeMsg" style="color:green;font-weight:bold;margin-top:10px;"></p>
+  </div>
+</main>
+
+<script>
+const content = document.getElementById("content");
+const welcomeMsg = document.getElementById("welcomeMsg");
+let currentUser = null;
+const accounts = JSON.parse(localStorage.getItem("accounts"))||[];
+function saveAccounts(){ localStorage.setItem("accounts",JSON.stringify(accounts)); }
+
+document.getElementById("createBtn").onclick = ()=>{
+  const name = document.getElementById("username").value.trim();
+  if(!name){ welcomeMsg.textContent="Enter a username!"; return; }
+  if(accounts.includes(name)){ welcomeMsg.textContent="Username exists!"; return; }
+  accounts.push(name); saveAccounts(); currentUser=name;
+  loadMainApp();
+}
+document.getElementById("loginBtn").onclick = ()=>{
+  const name = document.getElementById("username").value.trim();
+  if(!name){ welcomeMsg.textContent="Enter a username!"; return; }
+  if(!accounts.includes(name)){ welcomeMsg.textContent="Username not found!"; return; }
+  currentUser=name;
+  loadMainApp();
+}
+
+function loadMainApp(){
+  content.innerHTML=`
+  <header>RoboNation - Welcome ${currentUser}</header>
+  <nav>
+    <button id="lessonsBtn">Lessons</button>
+    <button id="simBtn">Simulator</button>
+    <button id="cadBtn">CAD</button>
+    <button id="outreachBtn">Outreach</button>
+    <button id="chatBtn">Community</button>
+  </nav>
+  <div id="mainContent" style="padding:20px;">
+    <p>Click a button above to explore lessons, simulators, CAD, outreach, or community chat.</p>
+  </div>
+  `;
+  setupMainApp();
+}
+
+function setupMainApp(){
+  const mainContent = document.getElementById("mainContent");
+
+  const lessons=[
+    {title:"Programming Basics", slides:[
+      "Programming allows you to give instructions to a robot. Robots follow these instructions to move, sense, and interact with their environment.",
+      "Variables store information such as numbers or text that your robot can use to make decisions.",
+      "Control structures, like if/else statements and loops, let your robot choose actions and repeat tasks automatically.",
+      "Functions are reusable blocks of code that can perform specific tasks multiple times without rewriting them.",
+      "Mini Project: Make a virtual robot move in a square pattern by combining loops and functions."
+    ]},
+    {title:"Hardware 101", slides:[
+      "Robots are made up of three main components: sensors, motors, and controllers.",
+      "Motors move parts of the robot. Sensors detect things like distance, light, or touch. Controllers act as the brain, deciding what the robot should do.",
+      "Wires and connectors are used to safely connect sensors and motors to the controller.",
+      "Basic circuit diagrams show how electricity flows between components in a robot.",
+      "Mini Project: Connect a motor to a sensor using a simple circuit and make the motor activate when the sensor detects an object."
+    ]},
+    {title:"CAD Basics", slides:[
+      "CAD (Computer-Aided Design) lets you design 3D parts for robots before building them physically.",
+      "Start by creating basic shapes like cubes and cylinders, then move, rotate, and combine them.",
+      "Use tools to adjust size, orientation, and position of each shape to make parts fit together.",
+      "Example: Design a robot wheel assembly by combining multiple shapes into one part.",
+      "Export your designs as STL files for 3D printing and testing in real life."
+    ], images:[
+      "", "", "", "https://via.placeholder.com/300x200.png?text=Robot+Wheel+CAD", ""
+    ]},
+    {title:"Outreach Skills", slides:[
+      "Outreach is about sharing STEM knowledge and robotics with your community.",
+      "Plan your event: choose a topic, target audience, and schedule the time.",
+      "Promote your event using flyers, social media posts, or short presentations.",
+      "During the event, record feedback, take photos, and note what works well.",
+      "Afterward, share your results online so others can learn from your project."
+    ]}
+  ];
+
+  function renderLessons(){
+    mainContent.innerHTML="";
+    lessons.forEach((lesson,i)=>{
+      const div = document.createElement("div");
+      div.className="card";
+      div.innerHTML=`<h3>${lesson.title}</h3><p>Click to open slides</p>`;
+      div.onclick = ()=> openLesson(i);
+      mainContent.appendChild(div);
+    });
+  }
+
+  function openLesson(index){
+    const lesson = lessons[index];
+    let slideIndex=0;
+    mainContent.innerHTML="";
+    const slideDiv = document.createElement("div");
+    slideDiv.className="slide";
+    const navDiv = document.createElement("div"); navDiv.className="slide-nav";
+    const prevBtn = document.createElement("button"); prevBtn.textContent="Previous";
+    const nextBtn = document.createElement("button"); nextBtn.textContent="Next";
+    const backBtn = document.createElement("button"); backBtn.textContent="Back to Lessons";
+
+    function showSlide(){
+      let contentText = lesson.slides[slideIndex];
+      if(lesson.images && lesson.images[slideIndex]){
+        contentText += `<br><img src="${lesson.images[slideIndex]}" class="cad">`;
+      }
+      slideDiv.innerHTML=`<h3>${lesson.title} - Slide ${slideIndex+1}/${lesson.slides.length}</h3><p style="color:black;">${contentText}</p>`;
+    }
+
+    prevBtn.onclick = ()=>{ if(slideIndex>0){ slideIndex--; showSlide(); } };
+    nextBtn.onclick = ()=>{ if(slideIndex<lesson.slides.length-1){ slideIndex++; showSlide(); } };
+    backBtn.onclick = renderLessons;
+
+    navDiv.appendChild(prevBtn);
+    navDiv.appendChild(nextBtn);
+    navDiv.appendChild(backBtn);
+    mainContent.appendChild(slideDiv);
+    mainContent.appendChild(navDiv);
+    showSlide();
+  }
+
+  function renderOutreach(){
+    mainContent.innerHTML="";
+    const container = document.createElement("div");
+    const input = document.createElement("input"); input.placeholder="Add outreach event";
+    const button = document.createElement("button"); button.textContent="Add";
+    const list = document.createElement("ul");
+    let events = JSON.parse(localStorage.getItem("outreach"))||[];
+
+    function renderEvents(){
+      list.innerHTML="";
+      events.forEach((e,i)=>{
+        const li = document.createElement("li"); li.textContent=e;
+        list.appendChild(li);
+      });
+    }
+
+    button.onclick = ()=>{
+      if(input.value.trim()){
+        events.push(input.value.trim());
+        localStorage.setItem("outreach", JSON.stringify(events));
+        renderEvents();
+        input.value="";
+      }
+    }
+
+    container.appendChild(input);
+    container.appendChild(button);
+    container.appendChild(list);
+    renderEvents();
+    mainContent.appendChild(container);
+  }
+
+  function renderCommunity(){
+    mainContent.innerHTML="";
+    const container = document.createElement("div");
+    const input = document.createElement("input"); input.placeholder="Type a message";
+    const button = document.createElement("button"); button.textContent="Send";
+    const list = document.createElement("ul");
+    let messages = JSON.parse(localStorage.getItem("chat"))||[];
+
+    function renderMessages(){
+      list.innerHTML="";
+      messages.forEach((m,i)=>{
+        const li = document.createElement("li"); li.textContent=m;
+        list.appendChild(li);
+      });
+    }
+
+    button.onclick = ()=>{
+      if(input.value.trim()){
+        messages.push(input.value.trim());
+        localStorage.setItem("chat", JSON.stringify(messages));
+        renderMessages();
+        input.value="";
+      }
+    }
+
+    container.appendChild(input);
+    container.appendChild(button);
+    container.appendChild(list);
+    renderMessages();
+    mainContent.appendChild(container);
+  }
+
+  document.getElementById("lessonsBtn").onclick = renderLessons;
+  document.getElementById("simBtn").onclick = ()=>{ mainContent.innerHTML=`<iframe src="https://blockly-demo.appspot.com/static/demos/blockfactory/index.html" width="100%" height="400px"></iframe>`; };
+  document.getElementById("cadBtn").onclick = renderLessons;
+  document.getElementById("outreachBtn").onclick = renderOutreach;
+  document.getElementById("chatBtn").onclick = renderCommunity;
+
+  renderLessons();
+}
+</script>
+
+</body>
+</html>
